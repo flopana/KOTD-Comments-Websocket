@@ -29,7 +29,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await q.get()
-            await websocket.send_text(data)
+            await websocket.send_json(data)
     except WebSocketDisconnect:
         return
 

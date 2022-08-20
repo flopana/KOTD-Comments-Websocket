@@ -1,4 +1,5 @@
 import asyncio
+import json
 from asyncio import Queue
 from typing import Any
 
@@ -29,7 +30,11 @@ class Listener:
         subreddit = await reddit.subreddit("kickopenthedoor")
         async for comment in subreddit.stream.comments():
             for q in self.subscribers:
-                await q.put(comment.author.name + " - " + comment.body)
+                await q.put({
+                    'body': comment.body,
+                    'author': comment.author.name,
+                    'link_id': comment.link_id
+                })
 
     async def stop_listening(self):
         # closing off the asyncio task when stopping the app. This method is called on
