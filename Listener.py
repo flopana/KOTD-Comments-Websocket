@@ -33,7 +33,9 @@ class Listener:
                 await q.put({
                     'body': comment.body,
                     'author': comment.author.name,
-                    'link_id': comment.link_id
+                    'link_id': comment.link_id,
+                    'author_flair_text': comment.author_flair_text,
+                    'author_flair_css_class': comment.author_flair_css_class,
                 })
 
     async def stop_listening(self):
