@@ -36,6 +36,7 @@ class Listener:
                     'link_id': comment.link_id,
                     'author_flair_text': comment.author_flair_text,
                     'author_flair_css_class': comment.author_flair_css_class,
+                    'permalink': comment.permalink,
                 })
 
     async def stop_listening(self):
