@@ -3,6 +3,7 @@ import json
 from asyncio import Queue
 from typing import Any
 
+import db
 from config import reddit
 
 
@@ -29,15 +30,34 @@ class Listener:
     async def _listener(self) -> None:
         subreddit = await reddit.subreddit("kickopenthedoor")
         async for comment in subreddit.stream.comments():
-            for q in self.subscribers:
-                await q.put({
+            try:
+                data = {
+                    'id': comment.id,
                     'body': comment.body,
                     'author': comment.author.name,
                     'link_id': comment.link_id,
                     'author_flair_text': comment.author_flair_text,
                     'author_flair_css_class': comment.author_flair_css_class,
                     'permalink': comment.permalink,
-                })
+                    'parent_id': comment.parent_id,
+                    'created_utc': comment.created_utc
+                }
+                db.conn.execute("""
+                             insert into comments (
+                                 comment_id, body, author, link_id, author_flair_text, author_flair_css_class,
+                                 permalink, parent_id, created_utc
+                             ) values (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                         """, (
+                    data['id'], data['body'], data['author'], data['link_id'],
+                    data['author_flair_text'], data['author_flair_css_class'],
+                    data['permalink'], data['parent_id'], data['created_utc']
+                ))
+                db.conn.commit()
+                for q in self.subscribers:
+                    await q.put(data)
+            except Exception as e:
+                print(e)
+
 
     async def stop_listening(self):
         # closing off the asyncio task when stopping the app. This method is called on
