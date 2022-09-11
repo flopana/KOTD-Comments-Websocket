@@ -1,5 +1,5 @@
 import asyncio
-import json
+from loguru import logger as log
 from asyncio import Queue
 from typing import Any
 
@@ -28,9 +28,9 @@ class Listener:
         self.listener_task = asyncio.create_task(self._listener())
 
     async def _listener(self) -> None:
-        subreddit = await reddit.subreddit("kickopenthedoor")
-        async for comment in subreddit.stream.comments():
-            try:
+        try:
+            subreddit = await reddit.subreddit("kickopenthedoor")
+            async for comment in subreddit.stream.comments():
                 data = {
                     'id': comment.id,
                     'body': comment.body,
@@ -55,9 +55,8 @@ class Listener:
                 db.conn.commit()
                 for q in self.subscribers:
                     await q.put(data)
-            except Exception as e:
-                print(e)
-
+        except Exception as e:
+            log.error(e)
 
     async def stop_listening(self):
         # closing off the asyncio task when stopping the app. This method is called on
